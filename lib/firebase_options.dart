@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -49,16 +50,16 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDeGR7N9SIGLsdkfUVxNizwwaweiCGtuG8',
+  static FirebaseOptions get android => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_ANDROID_API_KEY'] ?? '',
     appId: '1:395956028634:android:0a4efb8871c2d6c13e91e3',
     messagingSenderId: '395956028634',
     projectId: 'fulafia-lost-and-found',
     storageBucket: 'fulafia-lost-and-found.firebasestorage.app',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCoVn13FvcP6DhUXIldYdaf4KiJfQY9DAU',
+  static FirebaseOptions get ios => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_IOS_API_KEY'] ?? '',
     appId: '1:395956028634:ios:8641c8fac175ff8c3e91e3',
     messagingSenderId: '395956028634',
     projectId: 'fulafia-lost-and-found',

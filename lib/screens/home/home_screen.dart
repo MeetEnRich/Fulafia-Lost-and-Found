@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:lost_and_found/config/theme.dart';
 import 'package:lost_and_found/config/routes.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lost_and_found/models/item_model.dart';
 import 'package:lost_and_found/providers/auth_provider.dart';
 import 'package:lost_and_found/providers/item_provider.dart';
@@ -18,6 +19,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentTab = 0;
+  final PageController _pageController = PageController();
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
               floating: true,
               pinned: true,
               backgroundColor: AppTheme.primaryGreen,
+              elevation: 0,
               iconTheme: const IconThemeData(color: Colors.white),
               flexibleSpace: FlexibleSpaceBar(
                 titlePadding: const EdgeInsets.only(left: 48, bottom: 16),
@@ -40,29 +49,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   'Hello, ${auth.user?.fullName.split(' ').first ?? 'Student'}',
                   style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: Colors.white),
                 ),
-                background: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [AppTheme.primaryGreenLight, AppTheme.primaryGreen],
-                          begin: Alignment.topRight,
-                          end: Alignment.bottomLeft,
-                        ),
+                background: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppTheme.primaryGreenLight, AppTheme.primaryGreen],
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        right: -30,
+                        top: -30,
+                        child: Icon(Icons.lens_blur, size: 160, color: Colors.white.withValues(alpha: 0.15)),
                       ),
-                    ),
-                    Positioned(
-                      right: -30,
-                      top: -30,
-                      child: Icon(Icons.lens_blur, size: 160, color: Colors.white.withValues(alpha: 0.15)),
-                    ),
-                    Positioned(
-                      left: -20,
-                      bottom: -20,
-                      child: Icon(Icons.lens_blur, size: 120, color: Colors.white.withValues(alpha: 0.1)),
-                    ),
-                  ],
+                      Positioned(
+                        left: -20,
+                        bottom: -20,
+                        child: Icon(Icons.lens_blur, size: 120, color: Colors.white.withValues(alpha: 0.1)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -117,8 +125,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ];
         },
-        body: IndexedStack(
-          index: _currentTab,
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: (i) => setState(() => _currentTab = i),
           children: [
             _ItemFeed(
               stream: context.watch<ItemProvider>().lostItemsStream,
@@ -130,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
               stream: context.watch<ItemProvider>().foundItemsStream,
               emptyIcon: Icons.inventory_2_outlined,
               emptyTitle: 'No Found Items',
-              emptyMsg: 'No found items have been reported yet.',
+              emptyMsg: 'No one has reported a found item yet.',
             ),
             _UserItemsFeed(uid: uid),
           ],
@@ -138,7 +147,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentTab,
-        onTap: (i) => setState(() => _currentTab = i),
+        onTap: (i) {
+          _pageController.animateToPage(i, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+        },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.search_off_outlined),
@@ -167,127 +178,155 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDrawer(BuildContext context, AuthProvider auth) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: AppTheme.primaryGreen),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: Colors.white.withValues(alpha: 0.2),
-                      child: Text(
-                        auth.user?.fullName.isNotEmpty == true
-                            ? auth.user!.fullName[0].toUpperCase()
-                            : 'U',
-                        style: const TextStyle(
-                            fontSize: 24, color: Colors.white, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 56,
-                      height: 56,
-                      child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
-                    ),
-                  ],
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.7,
+      child: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppTheme.primaryGreenLight, AppTheme.primaryGreen],
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
                 ),
-                const SizedBox(height: 10),
-                Text(auth.user?.fullName ?? '',
-                    style: const TextStyle(
-                        color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-                Text(auth.user?.department ?? '',
-                    style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8), fontSize: 12)),
-              ],
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: -20,
+                    top: -20,
+                    child: Icon(Icons.lens_blur, size: 100, color: Colors.white.withValues(alpha: 0.15)),
+                  ),
+                  Positioned(
+                    left: -10,
+                    bottom: -10,
+                    child: Icon(Icons.lens_blur, size: 60, color: Colors.white.withValues(alpha: 0.1)),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          CircleAvatar(
+                            radius: 28,
+                            backgroundColor: Colors.white.withValues(alpha: 0.2),
+                            backgroundImage: auth.user?.profileImageUrl != null && auth.user!.profileImageUrl!.isNotEmpty
+                                ? CachedNetworkImageProvider(auth.user!.profileImageUrl!)
+                                : null,
+                            child: auth.user?.profileImageUrl == null || auth.user!.profileImageUrl!.isEmpty
+                                ? Text(
+                                    auth.user?.fullName.isNotEmpty == true
+                                        ? auth.user!.fullName[0].toUpperCase()
+                                        : 'U',
+                                    style: const TextStyle(
+                                        fontSize: 24, color: Colors.white, fontWeight: FontWeight.w600),
+                                  )
+                                : null,
+                          ),
+                          SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(auth.user?.fullName ?? '',
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                      Text(auth.user?.department ?? '',
+                          style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8), fontSize: 12)),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.home_outlined),
-            title: const Text('Home'),
-            onTap: () => Navigator.pop(context),
-          ),
-          ListTile(
-            leading: const Icon(Icons.search),
-            title: const Text('Search'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRoutes.search);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.notifications_outlined),
-            title: const Text('Notifications'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRoutes.notifications);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.receipt_long_outlined),
-            title: const Text('My Claims'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRoutes.claims);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.person_outlined),
-            title: const Text('Profile'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRoutes.profile);
-            },
-          ),
-          if (auth.isAdmin) ...[
-            const Divider(),
             ListTile(
-              leading: const Icon(Icons.admin_panel_settings),
-              title: const Text('Admin Panel'),
+              leading: const Icon(Icons.home_outlined),
+              title: const Text('Home'),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.search),
+              title: const Text('Search'),
               onTap: () {
                 Navigator.pop(context);
-                context.push(AppRoutes.admin);
+                context.push(AppRoutes.search);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.notifications_outlined),
+              title: const Text('Notifications'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push(AppRoutes.notifications);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.receipt_long_outlined),
+              title: const Text('My Claims'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push(AppRoutes.claims);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person_outlined),
+              title: const Text('Profile'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push(AppRoutes.profile);
+              },
+            ),
+            if (auth.isAdmin) ...[
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.admin_panel_settings),
+                title: const Text('Admin Panel'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push(AppRoutes.admin);
+                },
+              ),
+            ],
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout, color: AppTheme.error),
+              title: const Text('Logout', style: TextStyle(color: AppTheme.error)),
+              onTap: () async {
+                Navigator.pop(context); // close drawer first
+                final shouldLogout = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Log Out'),
+                    content: const Text('Are you sure you want to log out of your account?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
+                        child: const Text('Log Out'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (shouldLogout == true) {
+                  await auth.logout();
+                  if (context.mounted) context.go(AppRoutes.login);
+                }
               },
             ),
           ],
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout, color: AppTheme.error),
-            title: const Text('Logout', style: TextStyle(color: AppTheme.error)),
-            onTap: () async {
-              Navigator.pop(context); // close drawer first
-              final shouldLogout = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Log Out'),
-                  content: const Text('Are you sure you want to log out of your account?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Cancel'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-                      child: const Text('Log Out'),
-                    ),
-                  ],
-                ),
-              );
-
-              if (shouldLogout == true) {
-                await auth.logout();
-                if (context.mounted) context.go(AppRoutes.login);
-              }
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -316,22 +355,53 @@ class _ItemFeed extends StatelessWidget {
               itemCount: 5, itemBuilder: (_, _) => const ItemCardShimmer());
         }
         if (snapshot.hasError) {
-          return EmptyState(
-            icon: Icons.error_outline,
-            title: 'Something went wrong',
-            message: snapshot.error.toString(),
+          return RefreshIndicator(
+            onRefresh: () async {
+              await context.read<AuthProvider>().refreshUser();
+              await Future.delayed(const Duration(milliseconds: 400));
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: EmptyState(
+                  icon: Icons.error_outline,
+                  title: 'Something went wrong',
+                  message: snapshot.error.toString(),
+                ),
+              ),
+            ),
           );
         }
         final items = snapshot.data ?? [];
         if (items.isEmpty) {
-          return EmptyState(icon: emptyIcon, title: emptyTitle, message: emptyMsg);
+          return RefreshIndicator(
+            onRefresh: () async {
+              await context.read<AuthProvider>().refreshUser();
+              await Future.delayed(const Duration(milliseconds: 400));
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: EmptyState(icon: emptyIcon, title: emptyTitle, message: emptyMsg),
+              ),
+            ),
+          );
         }
-        return ListView.builder(
-          padding: const EdgeInsets.only(top: 8, bottom: 80),
-          itemCount: items.length,
-          itemBuilder: (context, index) => ItemCard(
-            item: items[index],
-            onTap: () => context.push('/item/${items[index].id}'),
+        return RefreshIndicator(
+          onRefresh: () async {
+            await context.read<AuthProvider>().refreshUser();
+            await Future.delayed(const Duration(milliseconds: 400));
+          },
+          child: ListView.builder(
+            padding: const EdgeInsets.only(top: 8, bottom: 80),
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: items.length,
+            itemBuilder: (context, index) => ItemCard(
+              item: items[index],
+              onTap: () => context.push('/item/${items[index].id}'),
+            ),
           ),
         );
       },

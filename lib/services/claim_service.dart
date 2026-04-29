@@ -20,6 +20,7 @@ class ClaimService {
       claimantName: claim.claimantName,
       claimantEmail: claim.claimantEmail,
       claimantPhone: claim.claimantPhone,
+      claimantProfileImageUrl: claim.claimantProfileImageUrl,
       message: claim.message,
       evidenceImageUrls: claim.evidenceImageUrls,
       status: ClaimStatus.pending,
@@ -123,10 +124,10 @@ class ClaimService {
       'responseMessage': responseMessage ?? 'Claim approved',
       'respondedAt': Timestamp.fromDate(DateTime.now()),
     });
-    batch.update(_firestore.collection('items').doc(claim.itemId), {
-      'status': ItemStatus.claimed.name,
-      'claimedByUid': claim.claimantUid,
-    });
+      batch.update(_firestore.collection('items').doc(claim.itemId), {
+        'status': ItemStatus.resolved.name,
+        'claimedByUid': claim.claimantUid,
+      });
     final otherClaims = await _claimsRef
         .where('itemId', isEqualTo: claim.itemId)
         .where('status', isEqualTo: ClaimStatus.pending.name)

@@ -8,6 +8,7 @@ import 'package:lost_and_found/services/notification_service.dart';
 import 'package:lost_and_found/widgets/common_widgets.dart';
 import 'package:lost_and_found/providers/item_provider.dart';
 import 'package:lost_and_found/widgets/claim_detail_sheet.dart';
+import 'package:lost_and_found/widgets/doodle_app_bar.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -17,9 +18,14 @@ class NotificationsScreen extends StatelessWidget {
     final uid = context.read<AuthProvider>().user?.uid ?? '';
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: DoodleAppBar(
         title: const Text('Notifications'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_sweep_outlined),
+            tooltip: 'Clear read',
+            onPressed: uid.isEmpty ? null : () => NotificationService().deleteReadNotifications(uid),
+          ),
           TextButton(
             onPressed: uid.isEmpty ? null : () => NotificationService().markAllAsRead(uid),
             child: const Text('Mark all read', style: TextStyle(color: Colors.white)),
@@ -135,7 +141,7 @@ class _NotifTile extends StatelessWidget {
           }
         }
         
-        if (notif.itemId != null) context.push('/item/${notif.itemId}');
+        if (notif.itemId != null && context.mounted) context.push('/item/${notif.itemId}');
       },
       child: Container(
         color: notif.isRead ? null : AppTheme.primaryGreen.withValues(alpha: 0.05),

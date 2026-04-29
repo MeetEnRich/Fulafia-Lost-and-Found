@@ -14,6 +14,7 @@ import 'package:lost_and_found/services/storage_service.dart';
 import 'package:lost_and_found/utils/validators.dart';
 import 'package:lost_and_found/widgets/common_widgets.dart';
 import 'package:lost_and_found/widgets/claim_detail_sheet.dart';
+import 'package:lost_and_found/widgets/doodle_app_bar.dart';
 
 class ItemDetailScreen extends StatelessWidget {
   final String itemId;
@@ -22,7 +23,7 @@ class ItemDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Item Details')),
+      appBar: const DoodleAppBar(title: Text('Item Details')),
       body: FutureBuilder<ItemModel?>(
         future: ItemService().getItem(itemId),
         builder: (context, snapshot) {
@@ -473,6 +474,7 @@ class _ClaimSheetState extends State<_ClaimSheet> {
       claimantName: auth.user!.fullName,
       claimantEmail: auth.user!.email,
       claimantPhone: auth.user!.phoneNumber,
+      claimantProfileImageUrl: auth.user!.profileImageUrl,
       message: _msgController.text.trim(),
       evidenceImageUrls: evidenceUrls,
       createdAt: DateTime.now(),

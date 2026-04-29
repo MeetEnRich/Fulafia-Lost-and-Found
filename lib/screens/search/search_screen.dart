@@ -7,6 +7,7 @@ import 'package:lost_and_found/models/item_model.dart';
 import 'package:lost_and_found/providers/item_provider.dart';
 import 'package:lost_and_found/widgets/item_card.dart';
 import 'package:lost_and_found/widgets/common_widgets.dart';
+import 'package:lost_and_found/widgets/doodle_app_bar.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -51,7 +52,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: DoodleAppBar(
         title: const Text('Search Items'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56),

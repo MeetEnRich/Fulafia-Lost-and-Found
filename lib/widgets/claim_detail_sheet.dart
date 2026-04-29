@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import 'package:lost_and_found/config/theme.dart';
 import 'package:lost_and_found/models/claim_model.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -57,11 +56,6 @@ class ClaimDetailSheet extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           
-          // Claimant Info
-          const Text('Claimant:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-          Text(claim.claimantName, style: const TextStyle(fontSize: 16)),
-          Text('Submitted ${timeago.format(claim.createdAt)}', style: Theme.of(context).textTheme.labelSmall),
-          const SizedBox(height: 16),
           
           // Message
           const Text('Message:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
@@ -113,10 +107,12 @@ class ClaimDetailSheet extends StatelessWidget {
               if (!isClaimant) {
                 // Show Claimant details
                 return _buildContactBox(
+                  context: context,
                   title: 'Claimant Contact Details:',
                   name: claim.claimantName,
                   phone: claim.claimantPhone,
                   email: claim.claimantEmail,
+                  profileImageUrl: claim.claimantProfileImageUrl,
                 );
               }
 
@@ -136,10 +132,12 @@ class ClaimDetailSheet extends StatelessWidget {
                     return const Text('Could not load reporter details.', style: TextStyle(color: AppTheme.error));
                   }
                   return _buildContactBox(
+                    context: context,
                     title: 'Reporter Contact Details:',
                     name: reporter.fullName,
                     phone: reporter.phoneNumber,
                     email: reporter.email,
+                    profileImageUrl: reporter.profileImageUrl,
                   );
                 },
               );
@@ -207,10 +205,12 @@ class ClaimDetailSheet extends StatelessWidget {
   }
 
   Widget _buildContactBox({
+    required BuildContext context,
     required String title,
     required String name,
     required String phone,
     required String email,
+    String? profileImageUrl,
   }) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -220,11 +220,36 @@ class ClaimDetailSheet extends StatelessWidget {
         children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.success)),
           const SizedBox(height: 16),
-          _ContactRow(
-            icon: Icons.person_outlined,
-            label: name,
+          Row(
+            children: [
+              GestureDetector(
+                onTap: (profileImageUrl != null && profileImageUrl.isNotEmpty)
+                    ? () => showDialog(context: context, builder: (_) => ImagePreviewDialog(imageUrl: profileImageUrl))
+                    : null,
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.white,
+                  backgroundImage: (profileImageUrl != null && profileImageUrl.isNotEmpty)
+                      ? CachedNetworkImageProvider(profileImageUrl)
+                      : null,
+                  child: (profileImageUrl == null || profileImageUrl.isEmpty)
+                      ? Text(name[0].toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w600))
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                    const Text('Student', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          const Divider(height: 24),
           _ContactRow(
             icon: Icons.phone_outlined,
             label: phone,

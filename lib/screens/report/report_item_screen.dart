@@ -9,6 +9,7 @@ import 'package:lost_and_found/providers/auth_provider.dart';
 import 'package:lost_and_found/providers/item_provider.dart';
 import 'package:lost_and_found/utils/validators.dart';
 import 'package:lost_and_found/widgets/common_widgets.dart';
+import 'package:lost_and_found/widgets/doodle_app_bar.dart';
 
 class ReportItemScreen extends StatefulWidget {
   const ReportItemScreen({super.key});
@@ -99,7 +100,7 @@ class _ReportItemScreenState extends State<ReportItemScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Report Item')),
+      appBar: const DoodleAppBar(title: Text('Report Item')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(

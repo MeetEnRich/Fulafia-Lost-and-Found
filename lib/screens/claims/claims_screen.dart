@@ -7,6 +7,8 @@ import 'package:lost_and_found/providers/auth_provider.dart';
 import 'package:lost_and_found/providers/item_provider.dart';
 import 'package:lost_and_found/widgets/common_widgets.dart';
 import 'package:lost_and_found/widgets/claim_detail_sheet.dart';
+import 'package:lost_and_found/widgets/doodle_app_bar.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ClaimsScreen extends StatelessWidget {
   const ClaimsScreen({super.key});
@@ -16,9 +18,9 @@ class ClaimsScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Claims'),
-          bottom: const TabBar(
+        appBar: const DoodleAppBar(
+          title: Text('Claims'),
+          bottom: TabBar(
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white70,
             indicatorColor: Colors.white,
@@ -113,7 +115,28 @@ class _ClaimTile extends StatelessWidget {
               StatusBadge(label: claim.status.label, color: claim.isPending ? AppTheme.warning : claim.isApproved ? AppTheme.success : AppTheme.error),
             ]),
             const SizedBox(height: 4),
-            if (isIncoming) Text('From: ${claim.claimantName}', style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+            if (isIncoming) 
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: (claim.claimantProfileImageUrl != null && claim.claimantProfileImageUrl!.isNotEmpty)
+                        ? () => showDialog(context: context, builder: (_) => ImagePreviewDialog(imageUrl: claim.claimantProfileImageUrl!))
+                        : null,
+                    child: CircleAvatar(
+                      radius: 12,
+                      backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                      backgroundImage: (claim.claimantProfileImageUrl != null && claim.claimantProfileImageUrl!.isNotEmpty)
+                          ? CachedNetworkImageProvider(claim.claimantProfileImageUrl!)
+                          : null,
+                      child: (claim.claimantProfileImageUrl == null || claim.claimantProfileImageUrl!.isEmpty)
+                          ? Text(claim.claimantName[0].toUpperCase(), style: const TextStyle(fontSize: 10, color: AppTheme.primaryGreen))
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text('From: ${claim.claimantName}', style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                ],
+              ),
             const SizedBox(height: 6),
             Text(claim.message, style: Theme.of(context).textTheme.bodySmall, maxLines: 2, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 8),

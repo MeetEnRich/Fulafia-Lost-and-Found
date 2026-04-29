@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lost_and_found/config/theme.dart';
 
 /// A styled empty state widget shown when lists have no content.
@@ -212,6 +213,51 @@ class StatusBadge extends StatelessWidget {
           fontWeight: FontWeight.w600,
           color: color,
         ),
+      ),
+    );
+  }
+}
+
+class ImagePreviewDialog extends StatelessWidget {
+  final String imageUrl;
+
+  const ImagePreviewDialog({super.key, required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.all(16),
+      child: Stack(
+        alignment: Alignment.topRight,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            child: CachedNetworkImage(
+              imageUrl: imageUrl,
+              fit: BoxFit.contain,
+              placeholder: (_, _) => const SizedBox(
+                height: 300,
+                child: Center(child: CircularProgressIndicator(color: Colors.white)),
+              ),
+              errorWidget: (_, _, _) => const SizedBox(
+                height: 300,
+                child: Center(child: Icon(Icons.broken_image, color: Colors.white54, size: 64)),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.black54,
+              radius: 18,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 18),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

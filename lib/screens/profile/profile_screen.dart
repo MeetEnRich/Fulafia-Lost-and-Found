@@ -8,6 +8,8 @@ import 'package:lost_and_found/config/theme.dart';
 import 'package:lost_and_found/config/routes.dart';
 import 'package:lost_and_found/providers/auth_provider.dart';
 import 'package:lost_and_found/providers/item_provider.dart';
+import 'package:lost_and_found/widgets/doodle_app_bar.dart';
+import 'package:lost_and_found/widgets/common_widgets.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -53,6 +55,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _showProfileImagePreview(String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (context) => ImagePreviewDialog(imageUrl: imageUrl),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
@@ -60,17 +69,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user == null) return const Scaffold(body: Center(child: Text('Not logged in')));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: const DoodleAppBar(title: Text('Profile')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(children: [
           // Avatar
-          GestureDetector(
-            onTap: _isUploadingImage ? null : _pickAndUploadImage,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CircleAvatar(
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              GestureDetector(
+                onTap: (user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty)
+                    ? () => _showProfileImagePreview(user.profileImageUrl!)
+                    : null,
+                child: CircleAvatar(
                   radius: 44,
                   backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
                   backgroundImage: user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty
@@ -83,19 +94,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         )
                       : null,
                 ),
-                if (_isUploadingImage)
-                  const CircularProgressIndicator(color: AppTheme.primaryGreen),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
+              ),
+              if (_isUploadingImage)
+                const CircularProgressIndicator(color: AppTheme.primaryGreen),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: _isUploadingImage ? null : _pickAndUploadImage,
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(color: AppTheme.primaryGreen, shape: BoxShape.circle),
                     child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           Text(user.fullName, style: Theme.of(context).textTheme.headlineMedium),

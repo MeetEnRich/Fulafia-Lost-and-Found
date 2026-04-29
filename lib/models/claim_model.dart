@@ -26,6 +26,7 @@ class ClaimModel {
   final String claimantName;
   final String claimantEmail;
   final String claimantPhone;
+  final String? claimantProfileImageUrl;
   final String message;
   final List<String> evidenceImageUrls;
   final ClaimStatus status;
@@ -41,6 +42,7 @@ class ClaimModel {
     required this.claimantName,
     required this.claimantEmail,
     required this.claimantPhone,
+    this.claimantProfileImageUrl,
     required this.message,
     this.evidenceImageUrls = const [],
     this.status = ClaimStatus.pending,
@@ -65,6 +67,7 @@ class ClaimModel {
       claimantName: map['claimantName'] ?? '',
       claimantEmail: map['claimantEmail'] ?? '',
       claimantPhone: map['claimantPhone'] ?? '',
+      claimantProfileImageUrl: map['claimantProfileImageUrl'],
       message: map['message'] ?? '',
       evidenceImageUrls: List<String>.from(map['evidenceImageUrls'] ?? []),
       status: ClaimStatus.values.firstWhere(
@@ -86,6 +89,7 @@ class ClaimModel {
       'claimantName': claimantName,
       'claimantEmail': claimantEmail,
       'claimantPhone': claimantPhone,
+      'claimantProfileImageUrl': claimantProfileImageUrl,
       'message': message,
       'evidenceImageUrls': evidenceImageUrls,
       'status': status.name,
@@ -110,6 +114,7 @@ class ClaimModel {
       claimantName: claimantName,
       claimantEmail: claimantEmail,
       claimantPhone: claimantPhone,
+      claimantProfileImageUrl: claimantProfileImageUrl,
       message: message,
       evidenceImageUrls: evidenceImageUrls ?? this.evidenceImageUrls,
       status: status ?? this.status,

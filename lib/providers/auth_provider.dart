@@ -26,17 +26,25 @@ class AuthProvider extends ChangeNotifier {
   Future<void> initialize() async {
     final firebaseUser = _authService.currentUser;
     if (firebaseUser != null) {
+      await refreshUser();
+    }
+    notifyListeners();
+  }
+
+  /// Re-fetch the current user's profile from Firestore.
+  Future<void> refreshUser() async {
+    final firebaseUser = _authService.currentUser;
+    if (firebaseUser != null) {
       try {
         _user = await _authService.getUserProfile(firebaseUser.uid);
         if (_user != null) {
           NotificationService().startListening(_user!.uid);
         }
+        notifyListeners();
       } catch (e) {
-        // User auth exists but profile doesn't — sign out
-        await _authService.logout();
+        debugPrint('Error refreshing user: $e');
       }
     }
-    notifyListeners();
   }
 
   // ── Register ────────────────────────────────────────────────────────────

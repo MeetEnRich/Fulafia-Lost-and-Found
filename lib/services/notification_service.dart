@@ -60,7 +60,7 @@ class NotificationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
-  
+
   StreamSubscription? _notifSubscription;
 
   // ── Initialise ────────────────────────────────────────────────────────────
@@ -74,9 +74,24 @@ class NotificationService {
       requestSoundPermission: true,
     );
     await _localNotifications.initialize(
-      const InitializationSettings(
-          android: androidSettings, iOS: iosSettings),
+      const InitializationSettings(android: androidSettings, iOS: iosSettings),
     );
+    // Request runtime permission on Android 13+ and iOS
+    await requestPermission();
+  }
+
+  /// Request notification permissions (Android 13+, iOS).
+  Future<void> requestPermission() async {
+    // Android 13+ runtime permission
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+    // iOS runtime permission
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
   }
 
   // ── Firestore helpers ─────────────────────────────────────────────────────
@@ -103,7 +118,7 @@ class NotificationService {
     });
   }
 
-  /// Start listening to incoming notifications to trigger local popups
+  /// Start listening to incoming notifications to trigger local popups.
   void startListening(String uid) {
     _notifSubscription?.cancel();
     _notifSubscription = _notifRef(uid)
@@ -114,9 +129,11 @@ class NotificationService {
         if (change.type == DocumentChangeType.added) {
           final data = change.doc.data();
           if (data != null) {
-            // Check if it was created very recently to avoid firing for old unread ones on startup
+            // Only fire for notifications created in the last 10 seconds
+            // to avoid re-triggering old unread ones on startup.
             final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
-            if (createdAt != null && DateTime.now().difference(createdAt).inSeconds < 10) {
+            if (createdAt != null &&
+                DateTime.now().difference(createdAt).inSeconds < 10) {
               _showLocalNotification(
                 title: data['title'] ?? 'New Notification',
                 body: data['body'] ?? '',
@@ -133,7 +150,7 @@ class NotificationService {
     _notifSubscription = null;
   }
 
-  /// Send a notification to a specific user (written to their Firestore sub-collection).
+  /// Send a notification to a specific user (writes to their Firestore sub-collection).
   Future<void> sendToUser({
     required String recipientUid,
     required String title,
@@ -153,7 +170,7 @@ class NotificationService {
       createdAt: DateTime.now(),
     );
     await docRef.set(notif.toMap());
-    // Local notification is now handled by the listener on the recipient's device
+    // Local notification is triggered by the recipient's startListening() stream.
   }
 
   /// Mark a single notification as read.
@@ -168,6 +185,16 @@ class NotificationService {
         await _notifRef(uid).where('isRead', isEqualTo: false).get();
     for (final doc in unread.docs) {
       batch.update(doc.reference, {'isRead': true});
+    }
+    await batch.commit();
+  }
+
+  /// Delete all notifications that have been read.
+  Future<void> deleteReadNotifications(String uid) async {
+    final batch = _firestore.batch();
+    final read = await _notifRef(uid).where('isRead', isEqualTo: true).get();
+    for (final doc in read.docs) {
+      batch.delete(doc.reference);
     }
     await batch.commit();
   }
@@ -199,7 +226,8 @@ class NotificationService {
       sendToUser(
         recipientUid: claimantUid,
         title: 'Claim Approved! 🎉',
-        body: 'Your claim on "$itemTitle" was approved. Contact the reporter to collect your item.',
+        body:
+            'Your claim on "$itemTitle" was approved. Contact the reporter to collect your item.',
         type: NotificationType.claimApproved,
         itemId: itemId,
         claimId: claimId,
@@ -227,14 +255,25 @@ class NotificationService {
     required String body,
   }) async {
     const androidDetails = AndroidNotificationDetails(
-      'lost_and_found_channel',
-      'Lost & Found',
+      'lost_and_found_alerts',
+      'Lost & Found Alerts',
       channelDescription: 'Notifications for claims and item updates',
-      importance: Importance.high,
-      priority: Priority.high,
+      importance: Importance.max,
+      priority: Priority.max,
+      playSound: true,
+      enableVibration: true,
+      enableLights: true,
+      fullScreenIntent: true,
+      visibility: NotificationVisibility.public,
+      category: AndroidNotificationCategory.message,
+    );
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
     );
     const details =
-        NotificationDetails(android: androidDetails, iOS: DarwinNotificationDetails());
+        NotificationDetails(android: androidDetails, iOS: iosDetails);
     await _localNotifications.show(
       DateTime.now().millisecondsSinceEpoch ~/ 1000,
       title,

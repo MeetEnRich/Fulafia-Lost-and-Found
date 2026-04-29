@@ -1,8 +1,8 @@
-# Lost & Found (FULafia) Mobile App
+# Lost & Found for Federal University Lafia (FULafia) Mobile App
 
 ## Overview
 
-**Lost & Found** (also known as **FULafia**) is a cross‑platform Flutter mobile application that helps university students report, discover, and claim lost items on campus.  The app provides a clean, premium UI with pull‑to‑refresh feeds, real‑time notifications, and automatic status updates when a claim is approved.
+**Lost & Found** is a cross‑platform Flutter mobile application that helps university students report, discover, and claim lost items on campus.  The app provides real‑time notifications, and automatic status updates when a claim is approved.
 
 ---
 
@@ -15,7 +15,6 @@
   - iOS: alert, badge, sound via `DarwinNotificationDetails`.
   - Permissions are requested at app start (Android 13+ & iOS).
 - **Firebase Firestore backend** – stores items, claims, and per‑user notifications.
-- **Responsive UI** – Gradient app bar, glass‑morphism background, modern typography (Google Fonts `Inter`).
 - **Extensible architecture** – services (`NotificationService`, `ClaimService`) are isolated for easy unit testing.
 
 ---
@@ -23,7 +22,7 @@
 ## Tech Stack
 
 | Layer | Technology |
-|-------|------------|
+| ------- | ------------ |
 | UI | Flutter (Dart) – `Material`, `Cupertino`, custom widgets |
 | State Management | Provider (simple, lightweight) |
 | Backend | Firebase Firestore (real‑time sync) |
@@ -36,8 +35,8 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/lost_and_found.git
-   cd lost_and_found
+   git clone https://github.com/MeetEnRich/Fulafia-Lost-and-Found.git
+   cd Fulafia-Lost-and-Found
    ```
 2. **Install Flutter** (≥ 3.22) and the required SDKs – see the official Flutter installation guide.
 3. **Configure Firebase**
@@ -81,12 +80,6 @@ lib/
 └──
 ```
 
-- **NotificationService** – Handles permission requests, builds the Android channel with `Importance.max` and `Priority.max`, and shows local notifications.
-- **ClaimService** – Sends claim data to Firestore, updates item status to `ItemStatus.resolved` after approval.
-- **Pull‑to‑Refresh** – Implemented via `RefreshIndicator` wrapped inside each feed widget, ensuring it works even when the list is empty.
-
----
-
 ## Contributing
 
 1. Fork the repository.
@@ -100,9 +93,3 @@ lib/
 ## License
 
 This project is licensed under the **MIT License** – see the `LICENSE` file for details.
-
----
-
-## Contact / Supervisor
-
-If any changes are required by your supervisor, simply update the relevant files, run `flutter test` to ensure nothing broke, and push to the `master` branch. The app is now production‑ready for field testing.

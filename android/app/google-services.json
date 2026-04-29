@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "395956028634",
+    "project_id": "fulafia-lost-and-found",
+    "storage_bucket": "fulafia-lost-and-found.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395956028634:android:0a4efb8871c2d6c13e91e3",
+        "android_client_info": {
+          "package_name": "com.example.lost_and_found"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeGR7N9SIGLsdkfUVxNizwwaweiCGtuG8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

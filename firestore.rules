@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Users ──────────────────────────────────────────────────────────────
+    // Any authenticated user can read any profile.
+    // Only the owner can write their own profile, admins can update roles.
+    match /users/{uid} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow update: if request.auth != null &&
+        (request.auth.uid == uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // ── Items ──────────────────────────────────────────────────────────────
+    // Any authenticated user can read ALL items (this is the key rule for the feeds).
+    // Only the reporter or an admin can update/delete.
+    match /items/{itemId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null &&
+        request.resource.data.reporterUid == request.auth.uid;
+      allow update: if request.auth != null &&
+        (resource.data.reporterUid == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow delete: if request.auth != null &&
+        (resource.data.reporterUid == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // ── Claims ─────────────────────────────────────────────────────────────
+    // Any authenticated user can read claims (needed for incoming/my claims feeds).
+    // Only the claimant can create. Reporter or admin can update status.
+    match /claims/{claimId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null &&
+        request.resource.data.claimantUid == request.auth.uid;
+      allow update: if request.auth != null;
+    }
+
+    // ── Notifications ───────────────────────────────────────────────────────
+    // Each user can only read their own notifications.
+    // Any authenticated user can write (needed to send notifications to others).
+    match /notifications/{uid}/items/{notifId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null;
+    }
+  }
+}

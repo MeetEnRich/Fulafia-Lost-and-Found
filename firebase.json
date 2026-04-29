@@ -1,0 +1,26 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "fulafia-lost-and-found",
+          "appId": "1:395956028634:android:0a4efb8871c2d6c13e91e3",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "fulafia-lost-and-found",
+          "configurations": {
+            "android": "1:395956028634:android:0a4efb8871c2d6c13e91e3",
+            "ios": "1:395956028634:ios:8641c8fac175ff8c3e91e3"
+          }
+        }
+      }
+    }
+  }
+}
